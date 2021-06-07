@@ -160,9 +160,3 @@ The server's port can optionally by changed by passing it as an argument:
 `$ python3 manage.py runserver 8080`
 
 #
-
-github.com:
-
-- user: jayteelan
-  oauth_token: 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
-  protocol: https
