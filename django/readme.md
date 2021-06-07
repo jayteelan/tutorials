@@ -4,27 +4,29 @@
 
 ### Create a virtual environment
 
-`venv` creates an isolated Python environment where packages can be installed locally and without admin privileges. Navigate to the target directory and run `venv`:
+`venv` creates an isolated Python environment where packages can be installed locally and without admin privileges.
 
-    `$ python3 -m venv my-new-virtual-environment`
+Navigate to the target directory and run `venv`:
+
+    $ python3 -m venv my-new-virtual-environment
 
 Then activate the virtual environment:
 
-    `$ source my-new-virtual-environment/bin/activate.fish`
+    $ source my-new-virtual-environment/bin/activate.fish
 
 ### Install Django
 
-    `$ python3 -m pip install Django`
+    $ python3 -m pip install Django
 
 This adds the Django package to `bin/` in the virtual environment. You can confirm the installation by checking its version:
 
-    `$ python3 -m django --version`
+    $ python3 -m django --version
 
 ### Create a new project
 
 Navigate into the target directory and create a new project directory:
 
-    `$ django-admin startproject mysite`
+    $ django-admin startproject mysite
 
 In addition to the outer `mysite/` directory (which can take any title and acts as a container for the project as a whole), `startproject` also creates:
 
@@ -161,12 +163,12 @@ GitHub.sublime-settings
 
 Navigate into the outer `mysite` directory and run
 
-    `$ python3 manage.py runserver`
+    $ python3 manage.py runserver
 
 Confirm the server is running by opening `http://localhost:8000` in the browser. The server should automatically reload the code as needed, but it may sometimes be necessary to restart it manually, e.g., when adding files.
 
 The server's port can optionally by changed by passing it as an argument:
 
-    `$ python3 manage.py runserver 8080`
+    $ python3 manage.py runserver 8080
 
 #
