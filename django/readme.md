@@ -177,9 +177,7 @@ This new app will ultimately be imported as a top-level module in our project, s
 
 Navigate to the proper directory and create the app:
 
-```sh
     $ python3 manage.py startapp polls
-```
 
 The newly-created `polls/` directory houses the poll application
 
@@ -187,7 +185,7 @@ The newly-created `polls/` directory houses the poll application
 
 This first view will return a simple "Hello world" statement when the user navigates to the index URL. The logic will be defined in `polls/views.py` while routing will be handled by an URLconf, which we will have to manually create in the `polls/` directory as `urls.py`.
 
-**polls/views.py**
+_polls/views.py_
 
 ```python
 from django.http import HttpResponse
@@ -196,7 +194,7 @@ def index(request):
     return HttpResponse("Hello world! This is the polls index")
 ```
 
-**polls/urls.py**
+_polls/urls.py_
 
 ```python
 from django.urls import path
@@ -208,8 +206,11 @@ urlpatterns=[
 ]
 ```
 
+### Create a path to the view
+
 Now update the project package's URLconf (`mysite/urls.py`) with a new route that points to the poll module's URLconf (`polls/urls.py`) for further processing. The `include()` function from `django.urls` is used to indicate where external URLconfs can be found.
-**mysite/urls.py**
+
+_mysite/urls.py_
 
 ```python
 from django.contrib import admin
@@ -224,7 +225,74 @@ urlpatterns = [
 Note the general syntax of URL patterns:
 
 ```python
-path('what-gets-added-to-the-base-URL/', include('where-to-find-the-next-URLconf')),
+path('route/', include('view.urls')),
 ```
 
-The default `admin/` path pointing to `admin.site.urls` is the **ONLY** time the `include()` function isn't used.
+where `route/` represents what gets appended to the base URL and `view.urls` indicates where the target URLconf is located.
+
+The default `admin/` route pointing to `admin.site.urls` is the **ONLY** time the `include()` function isn't used within the `path()` function.
+
+With the dev server running, `http://localhost:8000/polls/` will now display the polls app!
+
+## Set up a Postgres database
+
+Python includes and defaults to SQLite for databases. To use a different database such as PostgreSQL, [using Postgresql with Django](https://djangocentral.com/using-postgresql-with-django/ "a bit more work is needed")...
+
+### Install Psycopg2, which allows PostgreSQL to communicate with Python:
+
+    $ sudo pip install psycopg2-binary
+
+### Enter the Postgres CLI with full super admin access:
+
+    $ sudo -u postgres psql
+
+The terminal should now be prefixed with `postgres=#`.
+
+### Create a database and user
+
+```sql
+CREATE DATABASE mydb;
+CREATE USER defaultuser WITH ENCRYPTED PASSWORD '12345';
+```
+
+### Modify connection parameters to work with Django
+
+```sql
+ALTER ROLE defaultuser SET client_encoding TO 'utf8';
+ALTER ROLE defaultuser SET default_transaction_isolation TO 'read committed';
+ALTER ROLE defaultuser SET timezone TO 'UTC';
+```
+
+### Grant permissions to `defaultuser` and exit the SQL prompt
+
+```sql
+GRANT ALL PRIVILEGES ON DATABASE mydb TO defaultuser;
+\q
+```
+
+### Integrate PostgreSQL with Django
+
+Open `mysite/settings.py` and update the settings in the database section:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mydb',
+        'USER': 'defaultuser',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
+}
+```
+
+### Run a migration to test the database connection
+
+    $ python3 manage.py migrate
+
+### Create a superuser to access the admin panel (optional)
+
+    $ python3 manage.py createsuperuser
+
+With the dev server running, go to `http://localhost:8000/admin` in the browser and login with the superuser credentials. The admin panel will show the `Groups` and `Users` models from Django's authentication framework.
