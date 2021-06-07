@@ -10,7 +10,7 @@ Navigate to the target directory and run `venv`:
 
     $ python3 -m venv my-new-virtual-environment
 
-Then activate the virtual environment:
+Then activate the virtual environment (omit `.fish` if using bash):
 
     $ source my-new-virtual-environment/bin/activate.fish
 
@@ -171,4 +171,37 @@ The server's port can optionally by changed by passing it as an argument:
 
     $ python3 manage.py runserver 8080
 
-#
+## Now we're ready to create a Polls app!
+
+This new app will ultimately be imported as a top-level module in our project, so it'll go in the outer `mysite/` directory. If we instead create an app in the inner `mysite/` directory (i.e., the project package), it will be imported as a submodule of the `mysite` package.
+
+Navigate to the proper directory and create the app:
+
+    $ python3 manage.py startapp polls
+
+The newly-created `polls/` directory houses the poll application
+
+### Write a view
+
+This first view will return a simple "Hello world" statement when the user navigates to the index URL. The logic will be defined in `polls/views.py` while routing will be handled by an URLconf, which we will have to manually create in the `polls/` directory as `urls.py`.
+
+_polls/views.py_
+
+```python
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("Hello world! This is the polls index")
+```
+
+_polls/urls.py_
+
+```python
+from django.urls import path
+
+from . import views
+
+urlpatterns=[
+  path('',views.index,name='index'),
+]
+```
