@@ -5,7 +5,11 @@
 ### Create a virtual environment
 
 `venv` creates an isolated Python environment where packages can be installed locally and without admin privileges. Navigate to the target directory and run `venv`:
-`$ python3 -m venv my-new-virtual-environment`
+
+```
+$ python3 -m venv my-new-virtual-environment
+```
+
 Then activate the virtual environment:
 `$ source my-new-virtual-environment/bin/activate.fish`
 
