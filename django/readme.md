@@ -177,7 +177,9 @@ This new app will ultimately be imported as a top-level module in our project, s
 
 Navigate to the proper directory and create the app:
 
+```sh
     $ python3 manage.py startapp polls
+```
 
 The newly-created `polls/` directory houses the poll application
 
@@ -185,7 +187,7 @@ The newly-created `polls/` directory houses the poll application
 
 This first view will return a simple "Hello world" statement when the user navigates to the index URL. The logic will be defined in `polls/views.py` while routing will be handled by an URLconf, which we will have to manually create in the `polls/` directory as `urls.py`.
 
-_polls/views.py_
+**polls/views.py**
 
 ```python
 from django.http import HttpResponse
@@ -194,7 +196,7 @@ def index(request):
     return HttpResponse("Hello world! This is the polls index")
 ```
 
-_polls/urls.py_
+**polls/urls.py**
 
 ```python
 from django.urls import path
@@ -205,3 +207,24 @@ urlpatterns=[
   path('',views.index,name='index'),
 ]
 ```
+
+Now update the project package's URLconf (`mysite/urls.py`) with a new route that points to the poll module's URLconf (`polls/urls.py`) for further processing. The `include()` function from `django.urls` is used to indicate where external URLconfs can be found.
+**mysite/urls.py**
+
+```python
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+  path('polls/', include('polls.urls')),
+  path('admin/', admin.site.urls),
+]
+```
+
+Note the general syntax of URL patterns:
+
+```python
+path('what-gets-added-to-the-base-URL/', include('where-to-find-the-next-URLconf')),
+```
+
+The default `admin/` path pointing to `admin.site.urls` is the **ONLY** time the `include()` function isn't used.
