@@ -1,0 +1,10 @@
+{
+  "folders": [
+    {
+      "path": "django"
+    }
+  ],
+  "settings": {
+    "files.autoSave": "onFocusChange"
+  }
+}
