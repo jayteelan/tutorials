@@ -1,5 +1,11 @@
 # How To Django
 
+## Contents
+
+- [Setting up a new project](https://github.com/jayteelan/tutorials/tree/master/django#lets-get-things-set-up)
+- [Creating an app](https://github.com/jayteelan/tutorials/tree/master/django#now-were-ready-to-create-a-polls-app)
+- [Integrating with Postgres](https://github.com/jayteelan/tutorials/tree/master/django#set-up-a-postgres-database)
+
 ## Let's get things set up
 
 ### Create a virtual environment
@@ -38,7 +44,7 @@ In addition to the outer `mysite/` directory (which can take any title and acts 
   - `asgi.py` is the entry point for ASGI-compatible web servers to serve the project, and
   - `wsgi.py` is the entry point for WSGI-compatible web servers
 
-It's also a good idea to add a `.gitignore` to the project directory. Here's [the ultimate Django gitignore](https://djangowaves.com/tips-tricks/gitignore-for-a-django-project/#heres-the-ultimate-django-gitignore "The Ultimate Django .gitignore")
+It's also a good idea to add a `.gitignore` to the project directory. Here's [The Ultimate Django .gitignore](https://djangowaves.com/tips-tricks/gitignore-for-a-django-project/#heres-the-ultimate-django-gitignore "The Ultimate Django .gitignore")
 
 ```
 # Django #
@@ -236,7 +242,7 @@ With the dev server running, `http://localhost:8000/polls/` will now display the
 
 ## Set up a Postgres database
 
-Python includes and defaults to SQLite for databases. To use a different database such as PostgreSQL, [using Postgresql with Django](https://djangocentral.com/using-postgresql-with-django/ "a bit more work is needed")...
+Python includes and defaults to SQLite for databases. To use a different database such as PostgreSQL, [a bit more work is needed](https://djangocentral.com/using-postgresql-with-django/ "a bit more work is needed")...
 
 ### Install Psycopg2, which allows PostgreSQL to communicate with Python:
 
