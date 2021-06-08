@@ -5,6 +5,7 @@
 - [Setting up a new project](https://github.com/jayteelan/tutorials/tree/master/django#lets-get-things-set-up)
 - [Creating an app](https://github.com/jayteelan/tutorials/tree/master/django#now-were-ready-to-create-a-polls-app)
 - [Integrating with Postgres](https://github.com/jayteelan/tutorials/tree/master/django#set-up-a-postgres-database)
+- [Creating models in the database](https://github.com/jayteelan/tutorials/tree/master/django#lets-finally-make-some-dang-models)
 
 ## Let's get things set up
 
@@ -302,3 +303,43 @@ DATABASES = {
     $ python3 manage.py createsuperuser
 
 With the dev server running, go to `http://localhost:8000/admin` in the browser and login with the superuser credentials. The admin panel will show the `Groups` and `Users` models from Django's authentication framework.
+
+## Let's finally make some dang models!
+
+### Define the models and their relationships
+
+Models are defined in a module's `models.py` file and represented by Python classes:
+_polls/models.py_
+
+```python
+from django.db import models
+
+class Question(models.Model):
+  question_text = models.CharField(max_length=200)
+  pub_date = models.DateTimeField('date published')
+
+class Choice(models.Model):
+  question = models.ForeignKey(Question, on_delete=models.CASCADE)
+  choice_text = models.CharField(max_length=200)
+  votes = models.IntegerField(default=0)
+```
+
+Each class variable represents a database field (or column) in the model and follows the generalized syntax
+
+```python
+field_name = models.FieldClass('optional human-readable name',other_arguments)
+```
+
+If no human-readable name is given, Django will default to using the machine-readable name (i.e., `field_name`).
+
+Django has a [number](https://docs.djangoproject.com/en/3.2/ref/models/fields/#model-field-types "different model field types") of field classes built in; some of these have required arguments, such as `models.CharField(max_length=[integer])`. Custom field classes can also be written.
+
+Notice that field relationships are also defined using field classes.
+
+| Relationship | Field Class                                                                                                         | Syntax with Required Arguments                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Many-to-one  | [ForeignKey](https://docs.djangoproject.com/en/3.2/ref/models/fields/#foreignkey "further documentation")           | `ForeignKey(to, on_delete)`                       |
+| Many-to-many | [ManyToManyField](https://docs.djangoproject.com/en/3.2/ref/models/fields/#manytomanyfield "further documentation") | `ManyToManyField(to)`                             |
+| One-to-one   | [OneToOneField](https://docs.djangoproject.com/en/3.2/ref/models/fields/#onetoonefield "further documentation")     | `OneToOneField(to, on_delete, parent_link=False)` |
+
+The `to` argument in each of the above cases is the positional argument, or the other class/field in the relationship.
