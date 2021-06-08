@@ -343,3 +343,38 @@ Notice that field relationships are also defined using field classes.
 | One-to-one   | [OneToOneField](https://docs.djangoproject.com/en/3.2/ref/models/fields/#onetoonefield "further documentation")     | `OneToOneField(to, on_delete, parent_link=False)` |
 
 The `to` argument in each of the above cases is the positional argument, or the other class/field in the relationship.
+
+### Install the models and run a migration
+
+Django can use the model definitions in `models.py` to create schema (tables) for the polls app, but first the app needs to be included in the project. This is done by adding the path to its associated configuration class to the `INSTALLED_APPS` array in `mysite/settings.py`. Django created the configuration class `PollsConfig` for the polls app in `polls/apps.py`, so the updated settings should now read
+_mysite/settings.py_
+
+```python
+INSTALLED_APPS = [
+    'polls.apps.PollsConfig',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+```
+
+Now that the polls app has been included and its schema has been updated to include the `Question` and `Choice` models, it's now necessary to create a new migration file:
+
+    $ python3 manage.py makemigrations polls
+
+The resulting migration file can be found at `polls/migrations/0001_initial.py`.
+
+If desired, the `sqlmigrate` command can now be run on the new migration file to inspect the resulting SQL:
+
+    $ python3 manage.py sqlmigrate polls 0001
+
+Django's `check` function can also be used to check for problems in the project without making a new migration file or altering the database:
+
+    $ python3 manage.py check
+
+If everything looks good, run a migration to apply the changes to the database:
+
+    $ python3 manage.py migrate
