@@ -428,7 +428,7 @@ datetime.datetime(2021, 6, 10, 16, 1, 27, 25341, tzinfo=<UTC>)
 Values can be updated by changing the attributes, then calling `save()` again:
 
 ```python
-q.question_text = "'sup, bitches?"
+q.question_text = "sup, bitches?"
 q.save()
 ```
 
@@ -436,7 +436,7 @@ Records can be called by running functions such as `objects.get()`, `objects.fil
 
 ```sh
 >>> Question.objects.get(id=1)
-<QuerySet [Question: 'sup, bitches?]>
+<QuerySet [Question: sup, bitches?]>
 # without the __str__(self) method in the model class, this would instead return
 # <QuerySet [Question: Question object (1)]>
 ```
@@ -452,7 +452,7 @@ All of the choices associated with question `q` can be called with `q. choice_se
 
 # Choice objects have access to their related Question objects and vice versa.
 >>> c.question
-<Question: 'sup bitches?>
+<Question: sup bitches?>
 >>> q.choice_set.all()
 <QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
 ```
@@ -466,6 +466,7 @@ Double underscores are used to separate relationships. For example, to find all 
 ### Set up the admin portal
 
 Alternately, the database can be accessed and edited through Django's admin page once [a user with admin access has been created](https://github.com/jayteelan/tutorials/tree/master/django#create-a-superuser-to-access-the-admin-panel-optional "how to create an admin user'). However, the new models must be added to the admin page before they can be viewed:
+
 _polls/admin.py_
 
 ```python
