@@ -312,16 +312,27 @@ Models are defined in a module's `models.py` file and represented by Python clas
 _polls/models.py_
 
 ```python
+import datetime
 from django.db import models
+from django.utils import timezone
 
 class Question(models.Model):
   question_text = models.CharField(max_length=200)
   pub_date = models.DateTimeField('date published')
 
+  def was_published_recently(self):
+    return self.pub_date >= timezone.now() = datetime.timedelta(days=1)
+
+  def __str__(self):
+    return self.question_text
+
 class Choice(models.Model):
   question = models.ForeignKey(Question, on_delete=models.CASCADE)
   choice_text = models.CharField(max_length=200)
   votes = models.IntegerField(default=0)
+
+  def __str__(self):
+    return self.choice_text
 ```
 
 Each class variable represents a database field (or column) in the model and follows the generalized syntax
@@ -343,6 +354,10 @@ Notice that field relationships are also defined using field classes.
 | One-to-one   | [OneToOneField](https://docs.djangoproject.com/en/3.2/ref/models/fields/#onetoonefield "further documentation")     | `OneToOneField(to, on_delete, parent_link=False)` |
 
 The `to` argument in each of the above cases is the positional argument, or the other class/field in the relationship.
+
+Model classes can also include custom methods, such as `Question.was_published_recently(self)`.
+
+Finally, each class has a `__str__(self)` method, which allows Django to return a human-readable representation of the object when it's later called in the shell or admin page (this will be explained further in a later step).
 
 ### Install the models and run a migration
 
@@ -378,3 +393,65 @@ Django's `check` function can also be used to check for problems in the project 
 If everything looks good, run a migration to apply the changes to the database:
 
     $ python3 manage.py migrate
+
+### Interact with the API
+
+Django provides [an inbuilt API](https://docs.djangoproject.com/en/3.2/topics/db/queries/ "database API") to interact with the database through the Python shell rather than through Postgres. To begin, launch the shell through `manage.py`:
+
+    $ python3 manage.py shell
+
+Then import the models as well as the `timezone` utility, which is used to set `pub_date` values:
+
+```python
+from polls.models import Choice, Question
+from django.utils import timezone
+```
+
+New records can be added by first defining a new object with a variable, then running the `save()` method to save it to the database:
+
+```python
+q = Question(question_text="What's new?", pub_date=timezone.now())
+q.save()
+```
+
+Values for each record are accessed as Python attributes. Note that the primary key and an `id` attribute are automatically assigned.
+
+```python
+>>> q.id
+1
+>>> q.question_text
+"What's new?"
+>>> q. pub_date
+datetime.datetime(2021, 6, 10, 16, 1, 27, 25341, tzinfo=<UTC>)
+```
+
+Values can be updated by changing the attributes, then calling `save()` again:
+
+```python
+q.question_text = "'sup, bitches?"
+q.save()
+```
+
+Records can be called by running functions such as `objects.get()`, `objects.filter()`, or `objects.all()` on the model class:
+
+```python
+>>> Question.objects.get(id=1)
+<QuerySet [Question: 'sup, bitches?]>
+# without the __str__(self) method in the model class, this would instead return <QuerySet [Question: Question object (1)]>
+```
+
+All of the choices associated with question `q` can be called with `q. choice_set.all()`; choices can be added with `q.choice_set.create()`. Choice objects can optionally be assigned a variable to simplify calling them later:
+
+```python
+>>> q.set_choice.create(choice_text="Not much", votes=0)
+<Choice: Not much>
+>>> q.set_choice.create(choice_text="The sky", votes=0)
+<Choice: The sky>
+>>> c = q.choice_set.create(choice_text="Just hacking again", votes=0)
+
+# Choice objects have access to their related Question objects and vice versa.
+>>> c.question
+<Question: 'sup bitches?>
+>>> q.choice_set.all()
+<QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
+```
