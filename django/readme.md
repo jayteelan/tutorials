@@ -416,7 +416,7 @@ q.save()
 
 Values for each record are accessed as Python attributes. Note that the primary key and an `id` attribute are automatically assigned.
 
-```python
+```sh
 >>> q.id
 1
 >>> q.question_text
@@ -434,15 +434,16 @@ q.save()
 
 Records can be called by running functions such as `objects.get()`, `objects.filter()`, or `objects.all()` on the model class:
 
-```python
+```sh
 >>> Question.objects.get(id=1)
 <QuerySet [Question: 'sup, bitches?]>
-# without the __str__(self) method in the model class, this would instead return <QuerySet [Question: Question object (1)]>
+# without the __str__(self) method in the model class, this would instead return
+# <QuerySet [Question: Question object (1)]>
 ```
 
 All of the choices associated with question `q` can be called with `q. choice_set.all()`; choices can be added with `q.choice_set.create()`. Choice objects can optionally be assigned a variable to simplify calling them later:
 
-```python
+```sh
 >>> q.set_choice.create(choice_text="Not much", votes=0)
 <Choice: Not much>
 >>> q.set_choice.create(choice_text="The sky", votes=0)
@@ -454,4 +455,24 @@ All of the choices associated with question `q` can be called with `q. choice_se
 <Question: 'sup bitches?>
 >>> q.choice_set.all()
 <QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
+```
+
+Double underscores are used to separate relationships. For example, to find all Choices associated with questions published in 2021, one would enter:
+
+```sh
+>>> Choice.objects.filter(question__pub_date__year=2021)
+```
+
+### Set up the admin portal
+
+Alternately, the database can be accessed and edited through Django's admin page once [a user with admin access has been created](https://github.com/jayteelan/tutorials/tree/master/django#create-a-superuser-to-access-the-admin-panel-optional "how to create an admin user'). However, the new models must be added to the admin page before they can be viewed:
+_polls/admin.py_
+
+```python
+from django.contrib import admin
+
+from .models import Question,Choice
+
+admin.site.register([Question, Choice])
+
 ```
