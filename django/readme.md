@@ -465,7 +465,7 @@ Double underscores are used to separate relationships. For example, to find all 
 
 ### Set up the admin portal
 
-Alternately, the database can be accessed and edited through Django's admin page once [a user with admin access has been created](https://github.com/jayteelan/tutorials/tree/master/django#create-a-superuser-to-access-the-admin-panel-optional "how to create an admin user'). However, the new models must be added to the admin page before they can be viewed:
+Alternately, the database can be accessed and edited through Django's admin page once [a user with admin access has been created](https://github.com/jayteelan/tutorials/tree/master/django#create-a-superuser-to-access-the-admin-panel-optional "how to create an admin user"). However, the new models must be added to the admin page before they can be viewed:
 
 _polls/admin.py_
 
