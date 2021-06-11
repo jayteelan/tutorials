@@ -6,6 +6,7 @@
 - [Creating an app](https://github.com/jayteelan/tutorials/tree/master/django#now-were-ready-to-create-a-polls-app)
 - [Integrating with Postgres](https://github.com/jayteelan/tutorials/tree/master/django#set-up-a-postgres-database)
 - [Creating models in the database](https://github.com/jayteelan/tutorials/tree/master/django#lets-finally-make-some-dang-models)
+- [Working with the database API and admin portal](https://github.com/jayteelan/tutorials/tree/master/django#interact-with-the-api)
 
 ## Let's get things set up
 
@@ -394,7 +395,7 @@ If everything looks good, run a migration to apply the changes to the database:
 
     $ python3 manage.py migrate
 
-### Interact with the API
+## Interact with the API
 
 Django provides [an inbuilt API](https://docs.djangoproject.com/en/3.2/topics/db/queries/ "database API") to interact with the database through the Python shell rather than through Postgres. To begin, launch the shell through `manage.py`:
 
@@ -477,3 +478,111 @@ from .models import Question,Choice
 admin.site.register([Question, Choice])
 
 ```
+
+## Creating views
+
+Django is able to deliver content from the database to the client as views, or web pages, which are represented as Python functions or class methods. The URLconfs set up earlier provide structured URL patterns - such as `/newsarchive/<year>/<month>` - which Django then uses to select the appropriate view.
+
+### Add some more views to the polls app
+
+Now that the database has been set up, we can create views with arguments that pull information from it. Add the following to `polls/views.py`:
+
+```python
+def detail(request, question_id):
+    return HttpResponse("You're looking at question %s." % question_id)
+
+def results(request, question_id):
+    response = "You're looking at the results of question %s."
+    return HttpResponse(response % question_id)
+
+def vote(request, question_id):
+    return HttpResponse("You're voting on question %s." % question_id)
+```
+
+Of course, each new view needs a correspoding URL pattern. Add the following `path()` calls to `polls/urls.py`:
+
+```python
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    # ex: /polls/
+    path('', views.index, name='index'),
+    # ex: /polls/5/
+    path('<int:question_id>/', views.detail, name='detail'),
+    # ex: /polls/5/results/
+    path('<int:question_id>/results/', views.results, name='results'),
+    # ex: /polls/5/vote/
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+
+Now when the browser points to `/polls/5`, Django will first reference the `/polls/` path from `mysite.urls` and follow its direction the the polls module. It will then recognize the `<int:question_id>/` pattern from `polls.utrls` and run the `detail()` method from `polls.views`.
+
+### Make yourself useful and do something
+
+A view can either return an `HttpResponse` object with the requested page content, or it can raise an exception such as `Http404`; it is not necessary to have it read records from a database, though it certainly can. External libraries can allow Python to, for example, generate PDF files or JSON responses; but none are needed to return an HTML document.
+
+Let's replace the `index()` view (the "Hello world" page) with one that shows a comma-separated list of the five most recent questions in the poll system:
+_polls/views.py_
+
+```python
+
+from django.http import HttpResponse
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    output = ', '.join([q.question_text for q in latest_question_list])
+    return HttpResponse(output)
+
+  # ...and so on
+```
+
+### Create a template for the view
+
+Right now, the `index()` view uses a very basic design that's been hard-coded into it. Django provides a templating system that allows the design to be separated from the view for more design flexibility.
+
+By default, Django will look for these templates in an apps `/templates/` subdirectory, which must be manually created. Within that, another subdirectory named after the app (i.e., `/polls`) should be created to ensure Django uses the correct template rather than, for example, a template with the same file name from a different app.
+
+The template for the `index()` view will be an HTML document with bits of Python logic added in; make the appropriate directories and touch `index.html`, putting the following in the `<body>` of the document:
+_polls/templates/polls/index.html_
+
+```python
+# ...
+<body>
+  {% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+      <li><a href="/polls/{{question_id}}/">{{question.question_text}}</a></li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    <p>No polls are available.</p>
+  {% endif %}
+</body>
+```
+
+Now, update the `index()` view to use the template:
+_polls/views.py_
+
+```python
+from django.http import HttpResponse
+from django.template import loader
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    template = loader.get_template('polls/index.html')
+    context = {
+        'latest_question_list': latest_question_list,
+    }
+    return HttpResponse(template.render(context, request))
+```
+
+`loader` selects the proper template, then passes it a context - that is, a dictionary with variable names mapped to Python objects. The template engine then creates a list item for each object (following the logic in the template) and `index()` returns the final HTML document as an `HttpResponse`.
