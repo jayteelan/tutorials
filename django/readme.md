@@ -8,6 +8,8 @@
 - [Creating models in the database](https://github.com/jayteelan/tutorials/tree/master/django#lets-finally-make-some-dang-models)
 - [Working with the database API and admin portal](https://github.com/jayteelan/tutorials/tree/master/django#interact-with-the-api)
 - [Creating views for the browser](https://github.com/jayteelan/tutorials/tree/master/django#creating-views)
+- [Handling 404s](https://github.com/jayteelan/tutorials/tree/master/django#handling-404s)
+- [Best practices for working with URLs](https://github.com/jayteelan/tutorials/tree/master/django#remove_hardcoded_urls_in_templates)
 
 ## Let's get things set up
 
@@ -607,11 +609,12 @@ def index(request):
 
 Note that the `render()` function includes import statements for `loader` and `HttpResponse`; if no other views use either of these, it is unnecessary to import them separately from `render`
 
-### Handling 404s
+## Handling 404s
 
 We'll now create a view for the question detail - that is, the page that shows a poll's question text. This view will also return a custom 404 message if the user tries to access a `question_id` that does not exist.
 
 Make the following changes to `views.py`
+
 _polls/views.py_
 
 ```python
@@ -629,6 +632,7 @@ def detail(request, question_id):
 ```
 
 Of course, a new `detail.html` template needs to be created for the view. For now, keep it basic just to get it working:
+
 _polls/templates/polls/detail.html_
 
 ```python
@@ -638,6 +642,7 @@ _polls/templates/polls/detail.html_
 ### I know another shortcut!
 
 Most of the time, we'll want a failed `GET` request to raise a 404 error, so Django has a shortcut for the `try:except` block above called `get_object_or_404`:
+
 _polls/views.py_
 
 ```python
@@ -653,3 +658,78 @@ def detail(request, question_id):
 `get_object_or_404()` takes the target model (`Question`) as its first argument, then any number of keyword arguments, which it passes to the model manager's `get()` function; if the object doesn't exist, it raises a 404 error.
 
 There's a similar `get_list_or_404()` shortcut, but it uses the `filter()` function rather than `get()`
+
+### Flesh out the `detail()` view
+
+After running the server to confirm the above `detail()` view works as expected, let's update its template to do more than just show the question text:
+
+_polls/templates/polls/detail.html_
+
+```python
+# ...
+<h1>{{question.question_text}}</h1>
+<ul>
+{% for choice in question.choice_set.all %}
+  <li>{{choice.choice_text}}</li>
+{% endfor %}
+</ul>
+```
+
+Note the use of dot-lookup syntax to access attributes: for example, `{{question.question_text}}` directs Django to the current (`detail()`) view's `question` variable, which in turn directs to a specific `pk` in the `Question` model. From there, we can access the record's `question_text` and `choice_set` (i.e., the records in the Choice model that are associated with the current question). Further, note that `all` in `question.choice_set.all` refers to the `all()` method from Django's database lookup functions.
+
+## Remove hardcoded URLs in templates
+
+In the interest of keeping things DRY and thus easier to maintain, URLs that appear in templates should not be hardcoded. Currently, the link to a question in the `polls/index.html` template is partially hardcoded:
+
+_polls/templates/polls/index.html_
+
+```python
+# ...
+<li><a href="/polls/{{question.id}}"> # ...
+```
+
+However, the `/polls/#` pattern for the details URL has already been defined as a `path()` function in the `polls.urls` module, so we can replace the `href` with an `{% url %}` template tag that refers back to the `'detail'` path:
+
+_polls/templates/polls/index.html_
+
+```python
+# ...
+<li><a href="{% url 'detail' question.id %}"> # ...
+```
+
+**Path modifications should be confined to the `urls` module.** For example, if we wanted the `detail()` URL to follow the pattern `/polls/specifics/#` instead, we would update the `'detail'` path in `polls.urls` to:
+
+_polls/urls.py_
+
+```python
+# ...
+path('specifics/<int:question_id>/', views.detail, name='detail'),
+# ...
+```
+
+### Namespace URL names
+
+Just as it was necessary to create a `/polls/templates/polls` subdirectory to prevent Django from accidentally using a similarly-named template from another app, it's necessary to add a namespace to the `polls` app's URLconf to prevent Django from using a similarly-named view from another app. This is done by adding an `app_name` to the URLconf:
+
+_polls/urls.py_
+
+```python
+from django.urls import path
+
+from . import views
+
+app_name = 'polls'
+urlpatterns = [
+  path('', views.index, name="index"),
+  # ...
+]
+```
+
+The `app_name` is then prepended to the names of each view in the templates:
+
+_polls/templates/polls/index.html_
+
+```python
+# ...
+<li><a href="{% url 'polls:detail' question.id %}"> # ...
+```
