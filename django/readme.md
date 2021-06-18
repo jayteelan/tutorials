@@ -7,6 +7,7 @@
 - [Integrating with Postgres](https://github.com/jayteelan/tutorials/tree/master/django#set-up-a-postgres-database)
 - [Creating models in the database](https://github.com/jayteelan/tutorials/tree/master/django#lets-finally-make-some-dang-models)
 - [Working with the database API and admin portal](https://github.com/jayteelan/tutorials/tree/master/django#interact-with-the-api)
+- [Creating views for the browser](https://github.com/jayteelan/tutorials/tree/master/django#creating-views)
 
 ## Let's get things set up
 
@@ -548,7 +549,7 @@ Right now, the `index()` view uses a very basic design that's been hard-coded in
 
 By default, Django will look for these templates in an apps `/templates/` subdirectory, which must be manually created. Within that, another subdirectory named after the app (i.e., `/polls`) should be created to ensure Django uses the correct template rather than, for example, a template with the same file name from a different app.
 
-The template for the `index()` view will be an HTML document with bits of Python logic added in; make the appropriate directories and touch `index.html`, putting the following in the `<body>` of the document:
+The template for the `index()` view will be an HTML document with bits of Python logic added in. Make the appropriate directories and touch `index.html`, putting the following in the `<body>` of the document:
 _polls/templates/polls/index.html_
 
 ```python
@@ -586,3 +587,69 @@ def index(request):
 ```
 
 `loader` selects the proper template, then passes it a context - that is, a dictionary with variable names mapped to Python objects. The template engine then creates a list item for each object (following the logic in the template) and `index()` returns the final HTML document as an `HttpResponse`.
+
+### I know a shortcut!
+
+Because it's so common to load a template, fill a context, and return an `HttpResponse` with a rendered HTML document, Django provides a shortcut. The above `index()` view can be rewritten as:
+_polls/views.py_
+
+```python
+from django.shortcuts import render
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    context = {'latest_question_list': latest_question_list}
+    return render(request, 'polls/index.html', context)
+```
+
+Note that the `render()` function includes import statements for `loader` and `HttpResponse`; if no other views use either of these, it is unnecessary to import them separately from `render`
+
+### Handling 404s
+
+We'll now create a view for the question detail - that is, the page that shows a poll's question text. This view will also return a custom 404 message if the user tries to access a `question_id` that does not exist.
+
+Make the following changes to `views.py`
+_polls/views.py_
+
+```python
+from django.http import Http404
+from django.shortcuts import render
+
+from .models import Question
+# ...
+def detail(request, question_id):
+  try:
+    question=Question.objects.get(pk=question_id)
+  except Question.DoesNotExist:
+    raise Http404("Question does not exist")
+  return render(request, 'polls/detail.html',{'question': question})
+```
+
+Of course, a new `detail.html` template needs to be created for the view. For now, keep it basic just to get it working:
+_polls/templates/polls/detail.html_
+
+```python
+{{ question }}
+```
+
+### I know another shortcut!
+
+Most of the time, we'll want a failed `GET` request to raise a 404 error, so Django has a shortcut for the `try:except` block above called `get_object_or_404`:
+_polls/views.py_
+
+```python
+from django.shortcuts import get_object_or_404, render
+
+from .models import Question
+# ...
+def detail(request, question_id):
+  question=get_object_or_404(Question, pk=question_id)
+  return render(request, 'polls/detail.html',{'question':question})
+```
+
+`get_object_or_404()` takes the target model (`Question`) as its first argument, then any number of keyword arguments, which it passes to the model manager's `get()` function; if the object doesn't exist, it raises a 404 error.
+
+There's a similar `get_list_or_404()` shortcut, but it uses the `filter()` function rather than `get()`
