@@ -9,7 +9,8 @@
 - [Working with the database API and admin portal](https://github.com/jayteelan/tutorials/tree/master/django#interact-with-the-api)
 - [Creating views for the browser](https://github.com/jayteelan/tutorials/tree/master/django#creating-views)
 - [Handling 404s](https://github.com/jayteelan/tutorials/tree/master/django#handling-404s)
-- [Best practices for working with URLs](https://github.com/jayteelan/tutorials/tree/master/django#remove_hardcoded_urls_in_templates)
+- [Best practices for working with URLs](https://github.com/jayteelan/tutorials/tree/master/django#remove-hardcoded-urls-in-templates)
+- [Write a form](https://github.com/jayteelan/tutorials/tree/master/django#now-to-create-a-form)
 
 ## Let's get things set up
 
@@ -732,4 +733,28 @@ _polls/templates/polls/index.html_
 ```python
 # ...
 <li><a href="{% url 'polls:detail' question.id %}"> # ...
+```
+
+## Now to create a form
+
+Now to make the frontend more interactive with a form. Update `polls/detail.html ` with an HTML `<form>` element:
+
+_polls/templates/polls/detail.html_
+
+```python
+# ...
+<form action="{% url 'polls:vote' question.id %}" method="post">
+{% csrf_token %}
+<fieldset>
+  <legend><h1>{{ question.question_text }}</h1></legend>
+  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+  {% for choice in question.choice_set.all %}
+    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+    <label for="choice{{ forloop.counter }}">{{ choice.choice.text }}
+</label><br>
+  {% endfor %}
+</fieldset>
+<input type="submit" value="Vote">
+</form>
+# ...
 ```
