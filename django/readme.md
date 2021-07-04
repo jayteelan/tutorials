@@ -737,7 +737,7 @@ _polls/templates/polls/index.html_
 
 ## Now to create a form
 
-Now to make the frontend more interactive with a form. Update `polls/detail.html ` with an HTML `<form>` element:
+Now to make the frontend more interactive with a form. Update `polls/detail.html` with an HTML `<form>` element:
 
 _polls/templates/polls/detail.html_
 
@@ -750,11 +750,47 @@ _polls/templates/polls/detail.html_
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
   {% for choice in question.choice_set.all %}
     <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
-    <label for="choice{{ forloop.counter }}">{{ choice.choice.text }}
-</label><br>
+    <label for="choice{{ forloop.counter }}">{{ choice.choice.text }}</label><br>
   {% endfor %}
 </fieldset>
 <input type="submit" value="Vote">
 </form>
 # ...
 ```
+
+This presents a question and loops over its associates answer choices, creating a radio button for each and giving it an id based on the number of times the code has looped. The form sends data back to the server with an HTTP `POST` method; because this alters the database, Django's `{% csrf_token %}` template tag is used to protect against Cross Site Request Forgeries.
+
+### Create a view for the submitted data
+
+We earlier created a placeholder view in `polls/urls.py` for the `<int:question_id>/vote/` URL pattern; now let's create a proper one in `polls/views.py`
+
+_polls/views.py_
+
+```python
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+
+from .models import Choice, Question
+# ...
+def vote(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    try:
+        from all the choices associated with the question
+        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+    except (KeyError, Choice.DoesNotExist):
+        # Redisplay the question voting form.
+        return render(request, 'polls/detail.html', {
+            'question': question,
+            'error_message': "You didn't select a choice.",
+        })
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+        # Always return an HttpResponseRedirect after successfully dealing
+        # with POST data. This prevents data from being posted twice if a
+        # user hits the Back button.
+        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+```
+
+The `try` block uses `request.POST` to get the ID (pk) of the user-selected choice as a string (`request.POST` values are always strings). If no choice is selected, `request.POST['choice']` will raise a `KeyError` and render `polls/detail.html` along with an error message. Otherwise, the `votes` property in the `choice` object is incremented and the new value saved. The `reverse()` function then pulls the `question.id` from the current URL (`/polls/3/vote/`) and tells `HttpResponseRedirect` to insert it into the URL when returning the `polls:results` view; that is, the user will be redirected to `/polls/3/results/` after a successful `POST`.
