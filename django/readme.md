@@ -793,4 +793,43 @@ def vote(request, question_id):
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 ```
 
-The `try` block uses `request.POST` to get the ID (pk) of the user-selected choice as a string (`request.POST` values are always strings). If no choice is selected, `request.POST['choice']` will raise a `KeyError` and render `polls/detail.html` along with an error message. Otherwise, the `votes` property in the `choice` object is incremented and the new value saved. The `reverse()` function then pulls the `question.id` from the current URL (`/polls/3/vote/`) and tells `HttpResponseRedirect` to insert it into the URL when returning the `polls:results` view; that is, the user will be redirected to `/polls/3/results/` after a successful `POST`.
+The `try` block uses `request.POST` to get the ID (pk) of the user-selected choice as a string (`request.POST` values are always strings). If no choice is selected (`except`), `request.POST['choice']` will raise a `KeyError` and render `polls/detail.html` along with an error message.
+
+Otherwise, if the user has selected a choice (`else`), the `votes` property in the `choice` object is incremented and the new value saved.
+
+The `reverse()` function then pulls the `question.id` from the current URL (`/polls/3/vote/`) and tells `HttpResponseRedirect` to insert it into the URL when returning the `polls:results` view; that is, the user will be redirected to `/polls/3/results/` after a successful `POST`.
+
+### Create the `results` view
+
+The `results` view still returns a basic static page; let's fix that:
+
+_polls/views.py_
+
+```python
+# ...
+from django.shortcuts import get_object_or_404, render
+
+
+def results(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/results.html', {'question': question})
+# ...
+```
+
+...and create the `polls/results.html` template:
+
+_polls/templates/polls/results.html_
+
+```python
+# ...
+<h1>{{ question.question_text }}</h1>
+
+<ul>
+{% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+
+```
