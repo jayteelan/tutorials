@@ -483,6 +483,14 @@ admin.site.register([Question, Choice])
 
 ```
 
+### A quick side note on optional fields
+
+Typically, a field can be made optional by adding the `blank=True` argument to its model. Sometimes (e.g., with `ForeignKey` fields), a `null=True` argument also needs to be added to allow the field to be submitted with no content. Finally, the model in the table must be manually adjusted in Postgres with the following command:
+
+```sql
+ALTER TABLE model_name ALTER COLUMN field_name DROP NOT NULL;
+```
+
 ## Creating views
 
 Django is able to deliver content from the database to the client as views, or web pages, which are represented as Python functions or class methods. The URLconfs set up earlier provide structured URL patterns - such as `/newsarchive/<year>/<month>` - which Django then uses to select the appropriate view.
